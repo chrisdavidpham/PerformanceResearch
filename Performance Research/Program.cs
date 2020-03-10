@@ -8,13 +8,45 @@ namespace PerformanceResearch
     {
         static void Main(string[] args)
         {
-            TimeLongExtensions(10000000);
+            TimeLongMagnitude(10000000, Int64.MaxValue);
+            //TimeLongExtensions(10000000, Convert.ToInt64(Int32.MaxValue));
+            //TimeLongExtensions(10000000, Convert.ToInt64(Int16.MaxValue));
         }
 
-        static void TimeLongExtensions(int n)
+        static void TimeStringTokenizing(int n)
+        {
+            Func<long, long> func = l => long.AppendByRangeChecked(l);
+            string name = nameof(func);
+        }
+
+        static void Time()
+        {
+            int time = Timer.Time()
+        }
+
+        static void TimeLongMagnitude(int n, long max)
+        {
+            
+            //time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeByDivision()));
+
+            //Console.WriteLine($"Magnitude by division: {time,27} ms");
+
+            //time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeByRange()));
+            //Console.WriteLine($"Magnitude by range: {time,27} ms");
+
+            //time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeBySwitch()));
+            //Console.WriteLine($"Magnitude by switch: {time,27} ms");
+
+            //time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeByLog()));
+            //Console.WriteLine($"Magnitude by log: {time,27} ms");
+
+            //time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeByString()));
+            //Console.WriteLine($"Magnitude by string: {time,27} ms");
+        }
+
+        static void TimeLongAppend(int n, long max)
         {
             Random random = new Random();
-            long max = long.MaxValue;
             int time;
 
             Tuple<long, long>[] appendableTuples = Enumerable.Repeat(0, n).Select(i => 
@@ -24,42 +56,33 @@ namespace PerformanceResearch
                 return new Tuple<long, long>(r, maxAppend(r));
             }).ToArray();
 
-            // Magnitude
+            Console.WriteLine($"n={n}, max={max}");
 
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.Magnitude()));
-            Console.WriteLine($"Magnitude by division: {time} ms");
 
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeByRange()));
-            Console.WriteLine($"Magnitude by range: {time} ms");
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeBySwitch()));
-            Console.WriteLine($"Magnitude by switch: {time} ms");
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeByLog()));
-            Console.WriteLine($"Magnitude by log: {time} ms");
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeByString()));
-            Console.WriteLine($"Magnitude by string: {time} ms");
 
             // Append
 
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.Append(t.Item2)));
-            Console.WriteLine($"Append by range checked: {time} ms");
+            Func<long, long> func = l => new long().AppendByRangeChecked(l);
+            string name = nameof(func);
+            //Func<Func<long, long>, long> func = a => Array.ForEach(appendableTuples, t => t.Item1.a(t.Item2));
+
+            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendByRangeChecked(t.Item2)));
+            Console.WriteLine($"Append by range checked: {time,27} ms");
 
             time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendByRange(t.Item2)));
-            Console.WriteLine($"Append by range: {time} ms");
+            Console.WriteLine($"Append by range: {time,27} ms");
 
             time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendClean(t.Item2)));
-            Console.WriteLine($"Append by range checked clean: {time} ms");
+            Console.WriteLine($"Append by range checked clean: {time,27} ms");
 
             time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendByMagnitude(t.Item2)));
-            Console.WriteLine($"Append by magnitude: {time} ms");
+            Console.WriteLine($"Append by magnitude: {time,27} ms");
             
             time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendByConvertString(t.Item2)));
-            Console.WriteLine($"Append by convert string: {time} ms");
+            Console.WriteLine($"Append by convert string: {time,27} ms");
             
             time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendByParseString(t.Item2)));
-            Console.WriteLine($"Append by parse string: {time} ms");
+            Console.WriteLine($"Append by parse string: {time,27} ms");
         }
 
         private static long maxAppend(long i)

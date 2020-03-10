@@ -5,7 +5,7 @@ namespace PerformanceResearch
     public static class LongExtensions
     {
         // Fastest
-        public static long Magnitude(this long i)
+        public static long MagnitudeByDivision(this long i)
         {
             long magnitude = 1;
             for (long p = i; p >= 10; p /= 10)
@@ -81,7 +81,7 @@ namespace PerformanceResearch
         }
 
         // Fastest
-        public static long Append(this long i, long j)
+        public static long AppendByRangeChecked(this long i, long j)
         {
             if (j < 0 || i < 0) throw new Exception("Appended numbers must be non-negative");
             if (j <= 9) return checked(10 * i + j);
@@ -154,7 +154,7 @@ namespace PerformanceResearch
 
         public static long AppendByMagnitude(this long i, long j)
         {
-            long magnitudej = j.Magnitude();
+            long magnitudej = j.MagnitudeByDivision();
             return checked(i * magnitudej + j);
         }
 
