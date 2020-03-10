@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Diagnostics;
 using System.Collections.Generic;
 
 namespace PerformanceResearch
@@ -8,58 +10,124 @@ namespace PerformanceResearch
     {
         static void Main(string[] args)
         {
-            TimeLongExtensions(10000000);
+            Run();
         }
 
-        static void TimeLongExtensions(int n)
+        static void Run()
+        {
+            //TimeLongMagnitude(10000000, Convert.ToInt64(Int16.MaxValue));
+            //TimeLongMagnitude(10000000, Convert.ToInt64(Int32.MaxValue));
+            //TimeLongMagnitude(10000000, Int64.MaxValue);
+
+            //TimeLongAppend(10000000, Convert.ToInt64(Int32.MaxValue));
+            //TimeLongAppend(10000000, Convert.ToInt64(Int16.MaxValue));
+            //TimeLongAppend(10000000, Int64.MaxValue);
+
+            TimeStringTokenizing(10, 10);
+        }
+         
+        static void TimeStringTokenizing(int n, int max)
+        {
+            Time(TokenizeRegex, n, max);
+
+            // Method 2 - CharEnumerator - todo
+
+        }
+
+        static void TokenizeRegex(int n, int max)
+        {
+            MathExpression mathExpression = new MathExpression();
+
+            string regex = @"(\b(\d+)+\b)|\D";
+            // Method 1
+            for (int i = 1; i <= n; i++)
+            {
+                string expression = mathExpression.GenerateRandom(n, max);
+                Console.WriteLine(expression);
+                List<string> matches = new List<string>();
+
+                Match match = Regex.Match(expression, regex);
+                while (match.Success)
+                {
+                    matches.Add(match.Value);
+                    expression = expression.Substring(match.Value.Length);
+                    match = Regex.Match(expression, regex);
+                }
+                Console.WriteLine(string.Join(string.Empty, matches));
+            }
+        }
+
+        static void Time<T>(Action<T, T> func, T firstParameter, T secondParameter)
+        {
+            Action action = () => func(firstParameter, secondParameter);
+            long time = new Stopwatch().Time(action);
+            Console.WriteLine($"{func.Method.Name,-26} : {time,4} ms");
+        }
+
+        static void Time<T>(Func<T, T> func, T[] array)
+        {
+            Action action = () => Array.ForEach(array, l => func(l));
+            long time = new Stopwatch().Time(action);
+            Console.WriteLine($"{func.Method.Name,-26} : {time,4} ms");
+        }
+
+        static void Time<T>(Func<T, T, T> func, Tuple<T, T>[] tuples)
+        {
+            Action action = () => Array.ForEach(tuples, t => func(t.Item1, t.Item2));
+            long time = new Stopwatch().Time(action);
+            Console.WriteLine($"{func.Method.Name,-26} : {time,4} ms");
+        }
+
+        static void TimeLongMagnitude(int n, long max)
         {
             Random random = new Random();
-            long max = long.MaxValue;
-            int time;
+            long[] randoms = Enumerable.Repeat(0, n).Select(i => random.NextLong(max)).ToArray();
+            Console.WriteLine($"n = {n}, max = {max}");
 
-            Tuple<long, long>[] appendableTuples = Enumerable.Repeat(0, n).Select(i => 
+            Func<long, long>[] funcs = new Func<long, long>[]
+            {
+                LongExtensions.MagnitudeByMultiplication,
+                LongExtensions.MagnitudeByMultiplication2,
+                LongExtensions.MagnitudeByMultiplication3,
+                LongExtensions.MagnitudeByRange,
+                LongExtensions.MagnitudeByDivision,
+                //LongExtensions.MagnitudeBySwitch,
+                //LongExtensions.MagnitudeByLog,
+                //LongExtensions.MagnitudeByString
+            };
+            
+            foreach (Func<long, long> func in funcs)
+            {
+                Time(func, randoms);
+            }
+        }
+
+        static void TimeLongAppend(int n, long max)
+        {
+            Random random = new Random();
+            Tuple<long, long>[] appendableRandoms = Enumerable.Repeat(0, n).Select(i => 
             { 
                 long r = random.NextLong(max);
-                max -= 1000000000;
                 return new Tuple<long, long>(r, maxAppend(r));
             }).ToArray();
+            Console.WriteLine($"n = {n}, max = {max}");
 
-            // Magnitude
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.Magnitude()));
-            Console.WriteLine($"Magnitude by division: {time} ms");
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeByRange()));
-            Console.WriteLine($"Magnitude by range: {time} ms");
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeBySwitch()));
-            Console.WriteLine($"Magnitude by switch: {time} ms");
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeByLog()));
-            Console.WriteLine($"Magnitude by log: {time} ms");
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.MagnitudeByString()));
-            Console.WriteLine($"Magnitude by string: {time} ms");
-
-            // Append
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.Append(t.Item2)));
-            Console.WriteLine($"Append by range checked: {time} ms");
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendByRange(t.Item2)));
-            Console.WriteLine($"Append by range: {time} ms");
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendClean(t.Item2)));
-            Console.WriteLine($"Append by range checked clean: {time} ms");
-
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendByMagnitude(t.Item2)));
-            Console.WriteLine($"Append by magnitude: {time} ms");
+            Func<long, long, long>[] funcs = new Func<long, long, long>[]
+            {
+                LongExtensions.AppendByRangeChecked,
+                LongExtensions.AppendByRange,
+                LongExtensions.AppendByMagnitude,
+                LongExtensions.AppendLoop,
+                //LongExtensions.AppendByConvertString2,
+                //LongExtensions.AppendByParseString2,
+                //LongExtensions.AppendByParseString,
+                //LongExtensions.AppendByConvertString
+            };
             
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendByConvertString(t.Item2)));
-            Console.WriteLine($"Append by convert string: {time} ms");
-            
-            time = Timer.Time(() => Array.ForEach(appendableTuples, t => t.Item1.AppendByParseString(t.Item2)));
-            Console.WriteLine($"Append by parse string: {time} ms");
+            foreach (Func<long, long, long> func in funcs)
+            {
+                Time(func, appendableRandoms);
+            }
         }
 
         private static long maxAppend(long i)
