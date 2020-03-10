@@ -165,6 +165,7 @@ namespace PerformanceResearch
 
         public static long AppendByConvertString(this long i, long j)
         {
+            new long().
             return Convert.ToInt64($"{i}{j}");
         }
     }
