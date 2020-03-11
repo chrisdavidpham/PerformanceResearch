@@ -39,9 +39,9 @@ namespace PerformanceResearch
         /// <returns></returns>        
         public static Int64 NextLong(this Random random, Int64 min = Int64.MinValue, Int64 max = Int64.MaxValue)
         {
-            if (min > max)
+            if (min >= max)
             {
-                throw new Exception("Max must be greater than min");
+                throw new Exception("Max must be greater than or equal to min");
             }
             UInt64 uMin = (UInt64)min;
             UInt64 uMax = (UInt64)max + uMin;
