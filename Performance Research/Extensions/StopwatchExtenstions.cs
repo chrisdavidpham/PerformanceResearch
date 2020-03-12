@@ -11,11 +11,11 @@ namespace PerformanceResearch
         /// <param name="stopwatch">This Stopwatch.</param>
         /// <param name="func">A System.Func<T>.</param>
         /// <returns>Total milliseconds elapsed by this instance.</returns>
-        static public long Time<T>(this Stopwatch stopwatch, Func<T> func, out T funcOut)
+        static public TimeSpan Time<T>(this Stopwatch stopwatch, Func<T> func, out T funcOut)
         {
             stopwatch.Restart();
             funcOut = func();
-            return stopwatch.ElapsedMilliseconds;
+            return stopwatch.Elapsed;
         }
 
         /// <summary>
@@ -24,11 +24,11 @@ namespace PerformanceResearch
         /// <param name="stopwatch">This Stopwatch</param>
         /// <param name="action">A System.Action</param>
         /// <returns>Total milliseconds elapsed by this instance.</returns>
-        static public long Time(this Stopwatch stopwatch, System.Action action)
+        static public TimeSpan Time(this Stopwatch stopwatch, System.Action action)
         {
             stopwatch.Restart();
             action();
-            return stopwatch.ElapsedMilliseconds;
+            return stopwatch.Elapsed;
         }
     }
 }

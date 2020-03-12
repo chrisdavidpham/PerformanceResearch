@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -8,6 +8,8 @@ namespace PerformanceResearch
 {
     class Program
     {
+        private static Random Rand = new Random();
+
         static void Main(string[] args)
         {
             Run();
@@ -15,122 +17,152 @@ namespace PerformanceResearch
 
         static void Run()
         {
-            //TimeLongMagnitude(10000000, Convert.ToInt64(Int16.MaxValue));
-            //TimeLongMagnitude(10000000, Convert.ToInt64(Int32.MaxValue));
-            //TimeLongMagnitude(10000000, Int64.MaxValue);
+            //TestLongMagnitude(10000000, Convert.ToInt64(Int16.MaxValue));
+            //TestLongMagnitude(10000000, Convert.ToInt64(Int32.MaxValue));
+            //TestLongMagnitude(10000000, Int64.MaxValue);
 
-            //TimeLongAppend(10000000, Convert.ToInt64(Int32.MaxValue));
-            //TimeLongAppend(10000000, Convert.ToInt64(Int16.MaxValue));
-            //TimeLongAppend(10000000, Int64.MaxValue);
+            //TestLongAppend(10000000, Convert.ToInt64(Int16.MaxValue));
+            //TestLongAppend(10000000, Convert.ToInt64(Int32.MaxValue));
+            //TestLongAppend(10000000, Int64.MaxValue);
 
-            TimeStringTokenizing(10, 10);
+            TestTokenizing(1000, Convert.ToInt64(Math.Pow(2,7)));
+            TestTokenizing(1000, Convert.ToInt64(Int16.MaxValue));
+            TestTokenizing(1000, Convert.ToInt64(Int32.MaxValue));
+            TestTokenizing(1000, Int64.MaxValue);
         }
          
-        static void TimeStringTokenizing(int n, int max)
+        static List<string> TokenizeByEnumerator(string expression)
         {
-            Time(TokenizeRegex, n, max);
-
-            // Method 2 - CharEnumerator - todo
-
+            List<string> tokens           = new List<string>();
+            StringBuilder stringBuilder   = new StringBuilder();
+            CharEnumerator charEnumerator = expression.GetEnumerator();
+            while (charEnumerator.MoveNext())
+            {
+                char symbol = charEnumerator.Current;
+                if (char.IsDigit(symbol))
+                {
+                    stringBuilder.Append(symbol);
+                }
+                else 
+                {
+                    if (stringBuilder.Length > 0)
+                    {
+                        tokens.Add(stringBuilder.ToString());
+                        stringBuilder.Clear();
+                    }
+                    tokens.Add(symbol.ToString());
+                }
+            }
+            if (stringBuilder.Length > 0)
+            {
+                tokens.Add(stringBuilder.ToString());
+            }
+            return tokens;
         }
 
-        static void TokenizeRegex(int n, int max)
+        static void TestTokenizing(int n, long max)
         {
+            Stopwatch stopwatch           = new Stopwatch();
+            string[] expressions          = new string[n];
             MathExpression mathExpression = new MathExpression();
-
-            string regex = @"(\b(\d+)+\b)|\D";
-            // Method 1
-            for (int i = 1; i <= n; i++)
+            Func<string, List<string>>[] funcs = new Func<string, List<string>>[]
             {
-                string expression = mathExpression.GenerateRandom(n, max);
-                Console.WriteLine(expression);
-                List<string> matches = new List<string>();
-
-                Match match = Regex.Match(expression, regex);
-                while (match.Success)
-                {
-                    matches.Add(match.Value);
-                    expression = expression.Substring(match.Value.Length);
-                    match = Regex.Match(expression, regex);
-                }
-                Console.WriteLine(string.Join(string.Empty, matches));
+                TokenizeByEnumerator,
+                TokenizeByRegex,
+            };
+            
+            for (int i = 0; i < n; i++)
+                expressions[i] = mathExpression.GenerateRandom(n, max);
+            
+            foreach (Func<string, List<string>> func in funcs)
+            {
+                Action action = () => Array.ForEach(expressions, e => func(e));
+                TimeSpan timeSpan = stopwatch.Time(action);
+                int milliSeconds  = Convert.ToInt32(timeSpan.TotalMilliseconds);
+                Console.WriteLine($"{func.Method.Name,-27} : {milliSeconds,4} ms");
             }
         }
 
-        static void Time<T>(Action<T, T> func, T firstParameter, T secondParameter)
+        static List<string> TokenizeByRegex(string expression)
         {
-            Action action = () => func(firstParameter, secondParameter);
-            long time = new Stopwatch().Time(action);
-            Console.WriteLine($"{func.Method.Name,-26} : {time,4} ms");
+            List<string> matches = new List<string>();
+            Match match = Regex.Match(expression, @"(\b(\d+)+\b)|\D");
+            while (match.Success)
+            {
+                matches.Add(match.Value);
+                expression = expression.Substring(match.Value.Length);
+                match = Regex.Match(expression, @"(\b(\d+)+\b)|\D");
+            }
+            return matches;
         }
 
-        static void Time<T>(Func<T, T> func, T[] array)
+        static void TestLongMagnitude(int n, long max)
         {
-            Action action = () => Array.ForEach(array, l => func(l));
-            long time = new Stopwatch().Time(action);
-            Console.WriteLine($"{func.Method.Name,-26} : {time,4} ms");
-        }
-
-        static void Time<T>(Func<T, T, T> func, Tuple<T, T>[] tuples)
-        {
-            Action action = () => Array.ForEach(tuples, t => func(t.Item1, t.Item2));
-            long time = new Stopwatch().Time(action);
-            Console.WriteLine($"{func.Method.Name,-26} : {time,4} ms");
-        }
-
-        static void TimeLongMagnitude(int n, long max)
-        {
-            Random random = new Random();
-            long[] randoms = Enumerable.Repeat(0, n).Select(i => random.NextLong(max)).ToArray();
-            Console.WriteLine($"n = {n}, max = {max}");
-
+            long[] randoms           = new long[n];
+            Stopwatch stopwatch      = new Stopwatch();
             Func<long, long>[] funcs = new Func<long, long>[]
             {
                 LongExtensions.MagnitudeByMultiplication,
                 LongExtensions.MagnitudeByMultiplication2,
-                LongExtensions.MagnitudeByMultiplication3,
                 LongExtensions.MagnitudeByRange,
+                LongExtensions.MagnitudeByMultiplication3,
                 LongExtensions.MagnitudeByDivision,
-                //LongExtensions.MagnitudeBySwitch,
-                //LongExtensions.MagnitudeByLog,
-                //LongExtensions.MagnitudeByString
+                LongExtensions.MagnitudeBySwitch,
+                LongExtensions.MagnitudeByString,
+                LongExtensions.MagnitudeByLog,
             };
-            
+            for (int i = 0; i < n; i++)
+                randoms[i] = Rand.NextLong(max);
+
+            Console.WriteLine($"n = {n}, max = {max}");
             foreach (Func<long, long> func in funcs)
             {
-                Time(func, randoms);
+                Action action     = () => Array.ForEach(randoms, i => func(i));
+                TimeSpan timeSpan = stopwatch.Time(action);
+                int milliSeconds  = Convert.ToInt32(timeSpan.TotalMilliseconds);
+                Console.WriteLine($"{func.Method.Name,-27} : {milliSeconds,4} ms");
             }
         }
 
-        static void TimeLongAppend(int n, long max)
+        static void TestLongAppend(int n, long max)
         {
-            Random random = new Random();
-            Tuple<long, long>[] appendableRandoms = Enumerable.Repeat(0, n).Select(i => 
-            { 
-                long r = random.NextLong(max);
-                return new Tuple<long, long>(r, maxAppend(r));
-            }).ToArray();
-            Console.WriteLine($"n = {n}, max = {max}");
-
+            Stopwatch stopwatch = new Stopwatch();
+            Tuple<long, long>[] appendableRandoms = new Tuple<long, long>[n];
             Func<long, long, long>[] funcs = new Func<long, long, long>[]
             {
+                LongExtensions.AppendLoop,
                 LongExtensions.AppendByRangeChecked,
                 LongExtensions.AppendByRange,
                 LongExtensions.AppendByMagnitude,
-                LongExtensions.AppendLoop,
-                //LongExtensions.AppendByConvertString2,
-                //LongExtensions.AppendByParseString2,
-                //LongExtensions.AppendByParseString,
-                //LongExtensions.AppendByConvertString
+                LongExtensions.AppendByParseString2,
+                LongExtensions.AppendByConvertString2,
+                LongExtensions.AppendByConvertString,
+                LongExtensions.AppendByParseString,
             };
-            
+            for (int i = 0; i < n; i++)
+                appendableRandoms[i] = GetRandomAppendableTuple(max);
+
+            Console.WriteLine($"n = {n}, max = {max}");
             foreach (Func<long, long, long> func in funcs)
             {
-                Time(func, appendableRandoms);
+                Action action     = () => Array.ForEach(appendableRandoms, t => func(t.Item1, t.Item2));
+                TimeSpan timeSpan = stopwatch.Time(action);
+                int milliSeconds  = Convert.ToInt32(timeSpan.TotalMilliseconds);
+                Console.WriteLine($"{func.Method.Name,-27} : {milliSeconds,4} ms");
             }
         }
 
-        private static long maxAppend(long i)
+        private static Tuple<long, long> GetRandomAppendableTuple(long max)
+        {
+            long random1 = Rand.NextLong();
+            long random2 = Rand.NextLong(MaxAppend(random1));
+            Tuple<long, long> tuple = Rand.NextDouble() < 0.5
+                ? new Tuple<long, long>(random1, random2)
+                : new Tuple<long, long>(random2, random1);
+            return tuple;
+        }
+
+        private static long MaxAppend(long i)
         {
             if (i < 0) throw new Exception("Appended numbers must be non-negative");
             if (i <= 7) return 922337203685477580;

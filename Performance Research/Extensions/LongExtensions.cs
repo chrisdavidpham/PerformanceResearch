@@ -13,6 +13,8 @@ namespace PerformanceResearch
             return (x + (x >> 63)) ^ (x >> 63);
         }
 
+        #region Magnitude Methods
+
         public static long MagnitudeByMultiplication(this long x)
         {
             x = x.Abs();
@@ -109,24 +111,19 @@ namespace PerformanceResearch
             }
         }
 
-        public static long MagnitudeByString(this long x)
-        {
-            x = x.Abs();
-            long magnitude = 1L;
-            int power = x.ToString().Length;
-            for (; power > 1L; power--)
-                magnitude *= 10L;
-            return magnitude;
-        }
+        #endregion
 
-        public static long MagnitudeByLog(this long x)
+        #region Append Methods
+
+        public static long AppendLoop(this long x, long y)
         {
-            x = x.Abs();
-            long magnitude = 1L;
-            int power = (int)(Math.Log10(Convert.ToDouble(x)));
-            while (power-- >= 1L)
-                magnitude *= 10L;
-            return magnitude;
+            // Prevent overflow
+            if (y >= MAX_MAGNITUDE)
+                return checked(MAX_MAGNITUDE * x + y);
+            long magnitude = 10L;
+            while(y >= magnitude)
+                magnitude = magnitude * 10L;
+            return checked(magnitude * x + y);
         }
 
         public static long AppendByRangeChecked(this long x, long y)
@@ -192,20 +189,33 @@ namespace PerformanceResearch
             throw new System.OverflowException($"Concatenation exceeds {long.MaxValue}");
         }
 
-        public static long AppendLoop(this long x, long y)
-        {
-            if (y >= MAX_MAGNITUDE)
-                return checked(MAX_MAGNITUDE * x + y);
-            long magnitude = 10L;
-            while(y >= magnitude)
-                magnitude = magnitude * 10L;
-            return checked(magnitude * x + y);
-        }
-
         public static long AppendByMagnitude(this long x, long y)
         {
-            long magnitude = x.MagnitudeByMultiplication();
-            return checked(x * 10L * magnitude + y);
+            return checked(x * 10L * x.MagnitudeByMultiplication() + y);
+        }
+
+        #endregion
+
+        #region Slow Methods
+
+        public static long MagnitudeByString(this long x)
+        {
+            x = x.Abs();
+            long magnitude = 1L;
+            int power = x.ToString().Length;
+            for (; power > 1L; power--)
+                magnitude *= 10L;
+            return magnitude;
+        }
+
+        public static long MagnitudeByLog(this long x)
+        {
+            x = x.Abs();
+            long magnitude = 1L;
+            int power = (int)(Math.Log10(Convert.ToDouble(x)));
+            while (power-- >= 1L)
+                magnitude *= 10L;
+            return magnitude;
         }
 
         public static long AppendByParseString2(this long x, long y)
@@ -227,5 +237,7 @@ namespace PerformanceResearch
         {
             return Convert.ToInt64(x.ToString() + y.ToString());
         }
+
+        #endregion
     }
 }

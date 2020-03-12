@@ -15,7 +15,7 @@ namespace PerformanceResearch
             Random = new Random();
         }
 
-        public string GenerateRandom(int n, int max)
+        public string GenerateRandom(int n, long max)
         {
             StringBuilder stringBuilder = new StringBuilder();
             Stack<char> parathesisQueue = new Stack<char>();
@@ -37,13 +37,13 @@ namespace PerformanceResearch
                             else
                             {
                                 operation = false;
-                                stringBuilder.Append(Random.Next(max));
+                                stringBuilder.Append(Random.NextLong(max));
                             }
                             break;
                         case 1:
                             // Number
                             operation = false;
-                            stringBuilder.Append(Random.Next(max));
+                            stringBuilder.Append(Random.NextLong(max));
                             break;
                     }
                 }
