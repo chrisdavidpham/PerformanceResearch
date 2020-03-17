@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Appending Numbers", "Performance Research\Appending Numbers.csproj", "{14753AE0-AC8A-440A-9F3E-E789512B9839}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LongExtenstions", "Performance Research\LongExtenstions.csproj", "{14753AE0-AC8A-440A-9F3E-E789512B9839}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LongExtensionsTests", "LongExtensionsTests\LongExtensionsTests.csproj", "{9F0F4E23-9FB3-453B-B51A-64608D6E5360}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Linq", "Linq\Linq.csproj", "{2E7AF2A2-BF0B-4A15-8517-BF9B0125EE62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{9F0F4E23-9FB3-453B-B51A-64608D6E5360}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F0F4E23-9FB3-453B-B51A-64608D6E5360}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F0F4E23-9FB3-453B-B51A-64608D6E5360}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E7AF2A2-BF0B-4A15-8517-BF9B0125EE62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E7AF2A2-BF0B-4A15-8517-BF9B0125EE62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E7AF2A2-BF0B-4A15-8517-BF9B0125EE62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E7AF2A2-BF0B-4A15-8517-BF9B0125EE62}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

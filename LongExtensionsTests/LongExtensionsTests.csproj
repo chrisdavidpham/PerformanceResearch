@@ -56,9 +56,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Performance Research\Appending Numbers.csproj">
+    <ProjectReference Include="..\Performance Research\LongExtenstions.csproj">
       <Project>{14753ae0-ac8a-440a-9f3e-e789512b9839}</Project>
-      <Name>Appending Numbers</Name>
+      <Name>LongExtenstions</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

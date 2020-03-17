@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace PerformanceResearch
+namespace StopwatchExtensions
 {
     public static class StopwatchExtensions
     {

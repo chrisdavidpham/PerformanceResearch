@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace PerformanceResearch
+namespace RandomExtensions
 {
     public static class RandomExtensions
     {
@@ -39,14 +35,17 @@ namespace PerformanceResearch
         /// <returns></returns>        
         public static Int64 NextLong(this Random random, Int64 min = Int64.MinValue, Int64 max = Int64.MaxValue)
         {
-            if (min >= max)
+            if (min < 0 || max < 0)
             {
-                throw new Exception("Max must be greater than or equal to min");
+                throw new Exception("Numbers must be greater than 0.");
             }
-            UInt64 uMin = (UInt64)min;
-            UInt64 uMax = (UInt64)max + uMin;
-            UInt64 randomULong = (UInt64)random.NextDouble() * uMax;
-            return (Int64)(randomULong - uMin);
+            if (min > max)
+            {
+                throw new Exception("Max must be greater than or equal to min.");
+            }
+            Int64 range = max - min;
+            Int64 ran = (Int64)(random.NextDouble() * range);
+            return ran + min;
         }
     }
 }

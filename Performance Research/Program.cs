@@ -3,12 +3,15 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Collections.Generic;
+using RandomExtensions;
+using StopwatchExtensions;
 
 namespace PerformanceResearch
 {
     class Program
     {
         private static Random Rand = new Random();
+        private static long[] count;
 
         static void Main(string[] args)
         {
@@ -17,18 +20,14 @@ namespace PerformanceResearch
 
         static void Run()
         {
-            //TestLongMagnitude(10000000, Convert.ToInt64(Int16.MaxValue));
-            //TestLongMagnitude(10000000, Convert.ToInt64(Int32.MaxValue));
-            //TestLongMagnitude(10000000, Int64.MaxValue);
+            count = new long[19];
+            TestLongMagnitude(10000000);
+            TestLongAppend(10000000);
 
-            //TestLongAppend(10000000, Convert.ToInt64(Int16.MaxValue));
-            //TestLongAppend(10000000, Convert.ToInt64(Int32.MaxValue));
-            //TestLongAppend(10000000, Int64.MaxValue);
+            for (int i = 0; i < 19; i++)
+                Console.WriteLine($"{i} : {count[i]}");
 
-            TestTokenizing(1000, Convert.ToInt64(Math.Pow(2,7)));
-            TestTokenizing(1000, Convert.ToInt64(Int16.MaxValue));
-            TestTokenizing(1000, Convert.ToInt64(Int32.MaxValue));
-            TestTokenizing(1000, Int64.MaxValue);
+            //TestTokenizing(1000, Int64.MaxValue);
         }
          
         static List<string> TokenizeByEnumerator(string expression)
@@ -64,7 +63,7 @@ namespace PerformanceResearch
         {
             Stopwatch stopwatch           = new Stopwatch();
             string[] expressions          = new string[n];
-            MathExpression mathExpression = new MathExpression();
+            MathExpression.MathExpression mathExpression = new MathExpression.MathExpression();
             Func<string, List<string>>[] funcs = new Func<string, List<string>>[]
             {
                 TokenizeByEnumerator,
@@ -96,25 +95,22 @@ namespace PerformanceResearch
             return matches;
         }
 
-        static void TestLongMagnitude(int n, long max)
+        static void TestLongMagnitude(int n)
         {
             long[] randoms           = new long[n];
             Stopwatch stopwatch      = new Stopwatch();
             Func<long, long>[] funcs = new Func<long, long>[]
             {
-                LongExtensions.MagnitudeByMultiplication,
-                LongExtensions.MagnitudeByMultiplication2,
-                LongExtensions.MagnitudeByRange,
-                LongExtensions.MagnitudeByMultiplication3,
-                LongExtensions.MagnitudeByDivision,
-                LongExtensions.MagnitudeBySwitch,
-                LongExtensions.MagnitudeByString,
-                LongExtensions.MagnitudeByLog,
+                LongExtensions.LongExtensions.MagnitudeByMultiplication,
+                LongExtensions.LongExtensions.MagnitudeByMultiplication2,
+                LongExtensions.LongExtensions.MagnitudeByRange,
+                LongExtensions.LongExtensions.MagnitudeByMultiplication3,
+                LongExtensions.LongExtensions.MagnitudeByDivision,
             };
             for (int i = 0; i < n; i++)
-                randoms[i] = Rand.NextLong(max);
+                randoms[i] = Rand.NextLong();
 
-            Console.WriteLine($"n = {n}, max = {max}");
+            Console.WriteLine($"n = {n}");
             foreach (Func<long, long> func in funcs)
             {
                 Action action     = () => Array.ForEach(randoms, i => func(i));
@@ -124,25 +120,21 @@ namespace PerformanceResearch
             }
         }
 
-        static void TestLongAppend(int n, long max)
+        static void TestLongAppend(int n)
         {
             Stopwatch stopwatch = new Stopwatch();
             Tuple<long, long>[] appendableRandoms = new Tuple<long, long>[n];
             Func<long, long, long>[] funcs = new Func<long, long, long>[]
             {
-                LongExtensions.AppendLoop,
-                LongExtensions.AppendByRangeChecked,
-                LongExtensions.AppendByRange,
-                LongExtensions.AppendByMagnitude,
-                LongExtensions.AppendByParseString2,
-                LongExtensions.AppendByConvertString2,
-                LongExtensions.AppendByConvertString,
-                LongExtensions.AppendByParseString,
+                LongExtensions.LongExtensions.AppendByRangeChecked,
+                LongExtensions.LongExtensions.AppendLoop,
+                LongExtensions.LongExtensions.AppendByRange,
+                LongExtensions.LongExtensions.AppendByMagnitude,
             };
             for (int i = 0; i < n; i++)
-                appendableRandoms[i] = GetRandomAppendableTuple(max);
+                appendableRandoms[i] = GetRandomAppendableTuple();
 
-            Console.WriteLine($"n = {n}, max = {max}");
+            Console.WriteLine($"n = {n}");
             foreach (Func<long, long, long> func in funcs)
             {
                 Action action     = () => Array.ForEach(appendableRandoms, t => func(t.Item1, t.Item2));
@@ -152,14 +144,26 @@ namespace PerformanceResearch
             }
         }
 
-        private static Tuple<long, long> GetRandomAppendableTuple(long max)
+        private static Tuple<long, long> GetRandomAppendableTuple()
         {
-            long random1 = Rand.NextLong();
-            long random2 = Rand.NextLong(MaxAppend(random1));
-            Tuple<long, long> tuple = Rand.NextDouble() < 0.5
-                ? new Tuple<long, long>(random1, random2)
-                : new Tuple<long, long>(random2, random1);
-            return tuple;
+            // Random magnitudes
+            int p1 = Rand.Next(1, 19);
+            int p2 = Rand.Next(1, 19 - p1);
+            count[p1]++;
+            count[p2]++;
+            long max1 = (long)Math.Pow(10, p1);
+            long max2 = (long)Math.Pow(10, p2);
+            long min1 = (long)Math.Pow(10, p1 - 1) - 1;
+            long min2 = (long)Math.Pow(10, p2 - 1) - 1;
+            long maxAppend = MaxAppend(max2 - 1);
+            if (max1 > maxAppend)
+            {
+                max1 = maxAppend;
+                min1 /= 10;
+            }
+            long r1 = Rand.NextLong(min1, max1);
+            long r2 = Rand.NextLong(min2, max2);
+            return new Tuple<long, long>(r1, r2);
         }
 
         private static long MaxAppend(long i)

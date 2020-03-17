@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace PerformanceResearch
+namespace LongExtensions
 {
     public static class LongExtensions
     {
-        // Largest power of 10 less that Int64.MaxValue (10^18)
-        private static readonly long MAX_MAGNITUDE = 1000000000000000000L;
+        // Largest power of 10 less than Int64.MaxValue (10^18)
+        public static readonly long MAX_MAGNITUDE = 1000000000000000000L;
 
         public static long Abs(this long x)
         {
@@ -75,15 +75,6 @@ namespace PerformanceResearch
             return MAX_MAGNITUDE;
         }
 
-        public static long MagnitudeByDivision(this long x)
-        {
-            x = x.Abs();
-            long magnitude = 1L;
-            while ((x /= 10L) > 0L)
-                magnitude *= 10L;
-            return magnitude;
-        }
-
         public static long MagnitudeBySwitch(this long x)
         {
             x = x.Abs();
@@ -117,6 +108,7 @@ namespace PerformanceResearch
 
         public static long AppendLoop(this long x, long y)
         {
+            if (y < 0L || x < 0L) throw new LongAppendException("Appended numbers must be non-negative");
             // Prevent overflow
             if (y >= MAX_MAGNITUDE)
                 return checked(MAX_MAGNITUDE * x + y);
@@ -128,7 +120,7 @@ namespace PerformanceResearch
 
         public static long AppendByRangeChecked(this long x, long y)
         {
-            if (y < 0L || x < 0L) throw new Exception("Appended numbers must be non-negative");
+            if (y < 0L || x < 0L) throw new LongAppendException("Appended numbers must be non-negative");
             if (y < 10L) return checked(10L * x + y);
             if (y < 100L) return checked(100L * x + y);
             if (y < 1000L) return checked(1000L * x + y);
@@ -151,6 +143,7 @@ namespace PerformanceResearch
 
         public static long AppendByRange(this long x, long y)
         {
+            if (y < 0L || x < 0L) throw new LongAppendException("Appended numbers must be non-negative");
             if (y <= 7L && x <= 922337203685477580L) return 10L * x + y;
             if (y <= 9L && x <= 922337203685477579L) return 10L * x + y;
             if (y <= 99L && x <= 92233720368547757L) return 100L * x + y;
@@ -184,14 +177,14 @@ namespace PerformanceResearch
             if (y <= 99999999999999999L && x <= 91L) return 100000000000000000L * x + y;
             if (y <= 223372036854775807L && x <= 9L) return MAX_MAGNITUDE * x + y;
             if (y <= 999999999999999999L && x <= 8L) return MAX_MAGNITUDE * x + y;
-            if (y < 0L || x < 0L) throw new Exception("Appended numbers must be non-negative");
             if (x == 0L) return y;
             throw new System.OverflowException($"Concatenation exceeds {long.MaxValue}");
         }
 
         public static long AppendByMagnitude(this long x, long y)
         {
-            return checked(x * 10L * x.MagnitudeByMultiplication() + y);
+            if (y < 0L || x < 0L) throw new LongAppendException("Appended numbers must be non-negative");
+            return checked(x * 10L * y.MagnitudeByMultiplication() + y);
         }
 
         #endregion
@@ -212,32 +205,66 @@ namespace PerformanceResearch
         {
             x = x.Abs();
             long magnitude = 1L;
-            int power = (int)(Math.Log10(Convert.ToDouble(x)));
+            // Fix double rounding errors for large numbers
+            while (x >= 999999999999998)
+            {
+                x /= 10;
+                magnitude *= 10;
+            }
+            int power = (int)(Math.Log10(x));
             while (power-- >= 1L)
+                magnitude *= 10L;
+            return magnitude;
+        }
+
+        public static long MagnitudeByDivision(this long x)
+        {
+            x = x.Abs();
+            long magnitude = 1L;
+            while ((x /= 10L) > 0L)
                 magnitude *= 10L;
             return magnitude;
         }
 
         public static long AppendByParseString2(this long x, long y)
         {
+            if (y < 0L || x < 0L) throw new LongAppendException("Appended numbers must be non-negative");
             return long.Parse(x.ToString() + y.ToString());
         }
 
         public static long AppendByParseString(this long x, long y)
         {
+            if (y < 0L || x < 0L) throw new LongAppendException("Appended numbers must be non-negative");
             return long.Parse($"{x}{y}");
         }
 
         public static long AppendByConvertString(this long x, long y)
         {
+            if (y < 0L || x < 0L) throw new LongAppendException("Appended numbers must be non-negative");
             return Convert.ToInt64($"{x}{y}");
         }
 
         public static long AppendByConvertString2(this long x, long y)
         {
+            if (y < 0L || x < 0L) throw new LongAppendException("Appended numbers must be non-negative");
             return Convert.ToInt64(x.ToString() + y.ToString());
         }
 
         #endregion
+    }
+
+    public class LongAppendException : Exception
+    {
+        public LongAppendException()
+        {
+        }
+
+        public LongAppendException(string message) : base (message)
+        {
+        }
+
+        public LongAppendException(string message, Exception inner) : base (message, inner)
+        {
+        }
     }
 }
